@@ -19,8 +19,8 @@ type Querier interface {
 }
 
 // Bool is used to query a Querier interface and return a bool.
-func Bool(q Querier, query string) (bool, error) {
-	s, err := q.Query(query)
+func Bool(q Querier, format string, a ...interface{}) (bool, error) {
+	s, err := queryf(q, format, a...)
 	if err != nil {
 		return false, err
 	}
@@ -35,8 +35,8 @@ func Bool(q Querier, query string) (bool, error) {
 }
 
 // Float64 is used to query a Querier interface and return a float64.
-func Float64(q Querier, query string) (float64, error) {
-	s, err := q.Query(query)
+func Float64(q Querier, format string, a ...interface{}) (float64, error) {
+	s, err := queryf(q, format, a...)
 	if err != nil {
 		return 0.0, err
 	}
@@ -44,8 +44,8 @@ func Float64(q Querier, query string) (float64, error) {
 }
 
 // Int is used to query a Querier interface and return an int.
-func Int(q Querier, query string) (int, error) {
-	s, err := q.Query(query)
+func Int(q Querier, format string, a ...interface{}) (int, error) {
+	s, err := queryf(q, format, a...)
 	if err != nil {
 		return 0, err
 	}
@@ -54,6 +54,14 @@ func Int(q Querier, query string) (int, error) {
 }
 
 // String is used to query a Querier interface and return a string.
-func String(q Querier, query string) (string, error) {
-	return q.Query(query)
+func String(q Querier, format string, a ...interface{}) (string, error) {
+	return queryf(q, format, a...)
+}
+
+func queryf(q Querier, format string, a ...interface{}) (string, error) {
+	cmd := format
+	if a != nil {
+		cmd = fmt.Sprintf(format, a...)
+	}
+	return q.Query(cmd)
 }

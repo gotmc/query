@@ -18,9 +18,9 @@ type Querier interface {
 	Query(cmd string) (value string, err error)
 }
 
-// Bool is used to query a Querier interface and return a bool.
-func Bool(q Querier, format string, a ...interface{}) (bool, error) {
-	s, err := queryf(q, format, a...)
+// Bool queries a Querier with the given command and returns a bool.
+func Bool(q Querier, cmd string) (bool, error) {
+	s, err := q.Query(cmd)
 	if err != nil {
 		return false, err
 	}
@@ -34,18 +34,30 @@ func Bool(q Querier, format string, a ...interface{}) (bool, error) {
 	}
 }
 
-// Float64 is used to query a Querier interface and return a float64.
-func Float64(q Querier, format string, a ...interface{}) (float64, error) {
-	s, err := queryf(q, format, a...)
+// Boolf queries the Querier according to a format specifier and returns a
+// bool.
+func Boolf(q Querier, format string, a ...interface{}) (bool, error) {
+	return Bool(q, fmt.Sprintf(format, a...))
+}
+
+// Float64 queries the Querier with the given command and returns a float64.
+func Float64(q Querier, cmd string) (float64, error) {
+	s, err := q.Query(cmd)
 	if err != nil {
 		return 0.0, err
 	}
 	return strconv.ParseFloat(strings.TrimSpace(s), 64)
 }
 
-// Int is used to query a Querier interface and return an int.
-func Int(q Querier, format string, a ...interface{}) (int, error) {
-	s, err := queryf(q, format, a...)
+// Float64f queries the querier according to a format specifier and returns a
+// float.
+func Float64f(q Querier, format string, a ...interface{}) (float64, error) {
+	return Float64(q, fmt.Sprintf(format, a...))
+}
+
+// Int queries the querier with the given command and returns an int.
+func Int(q Querier, cmd string) (int, error) {
+	s, err := q.Query(cmd)
 	if err != nil {
 		return 0, err
 	}
@@ -53,15 +65,19 @@ func Int(q Querier, format string, a ...interface{}) (int, error) {
 	return int(i), err
 }
 
-// String is used to query a Querier interface and return a string.
-func String(q Querier, format string, a ...interface{}) (string, error) {
-	return queryf(q, format, a...)
+// Intf queries the querier according to a format specifier and returns a
+// int.
+func Intf(q Querier, format string, a ...interface{}) (int, error) {
+	return Int(q, fmt.Sprintf(format, a...))
 }
 
-func queryf(q Querier, format string, a ...interface{}) (string, error) {
-	cmd := format
-	if a != nil {
-		cmd = fmt.Sprintf(format, a...)
-	}
+// String queries the querier with the given command and returns a string.
+func String(q Querier, cmd string) (string, error) {
 	return q.Query(cmd)
+}
+
+// Stringf queries the querier according to a format specifier and returns a
+// string.
+func Stringf(q Querier, format string, a ...interface{}) (string, error) {
+	return String(q, fmt.Sprintf(format, a...))
 }

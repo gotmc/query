@@ -1,6 +1,6 @@
 # query
 
-Go package to return the desired type from a query to an instrument.
+Go package to parse the results from a query.
 
 [![GoDoc][godoc badge]][godoc link]
 [![Go Report Card][report badge]][report card]
@@ -9,7 +9,14 @@ Go package to return the desired type from a query to an instrument.
 
 ## Overview
 
-**TBD**
+Package[query][] provides convenience functions for parsing the results from a
+Query.
+
+```go
+type Querier interface {
+	Query(cmd string) (string, error)
+}
+```
 
 ## Contributing
 

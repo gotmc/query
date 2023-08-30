@@ -1,4 +1,4 @@
-// Copyright (c) 2020 The query developers. All rights reserved.
+// Copyright (c) 2020–2023 The query developers. All rights reserved.
 // Project site: https://github.com/gotmc/query
 // Use of this source code is governed by a MIT-style license that
 // can be found in the LICENSE.txt file for the project.
@@ -15,7 +15,7 @@ import (
 // the resultant string. The command string should include the appropriate
 // terminator for the instrument.
 type Querier interface {
-	Query(cmd string) (value string, err error)
+	Query(cmd string) (string, error)
 }
 
 // Bool queries a Querier with the given command and returns a bool.
@@ -61,8 +61,17 @@ func Int(q Querier, cmd string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	i, err := strconv.ParseInt(strings.TrimSpace(s), 10, 32)
-	return int(i), err
+	s = strings.TrimSpace(s)
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		// The string might be formatted to in scientific format.
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return 0, err
+		}
+		return int(f), nil
+	}
+	return i, nil
 }
 
 // Intf queries the querier according to a format specifier and returns a

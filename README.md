@@ -6,7 +6,6 @@ Go package to parse the results from a query.
 [![Go Report Card][report badge]][report card]
 [![License Badge][license badge]][LICENSE.txt]
 
-
 ## Overview
 
 Package[query][] provides convenience functions for parsing the results from a
@@ -20,15 +19,32 @@ type Querier interface {
 
 ## Contributing
 
-To contribute, please fork the repository, create a feature branch, and then
-submit a [pull request][].
+Contributions are welcome! To contribute please:
 
+1. Fork the repository
+2. Create a feature branch
+3. Code
+4. Submit a [pull request][]
+
+### Testing
+
+Prior to submitting a [pull request][], please run:
+
+```bash
+$ make check
+$ make lint
+```
+
+To update and view the test coverage report:
+
+```bash
+$ make cover
+```
 
 ## License
 
 [query][] is released under the MIT license. Please see the [LICENSE.txt][]
 file for more information.
-
 
 [godoc badge]: https://godoc.org/github.com/gotmc/query?status.svg
 [godoc link]: https://godoc.org/github.com/gotmc/query

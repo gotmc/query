@@ -24,7 +24,7 @@ func Bool(q Querier, cmd string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	switch s {
+	switch strings.TrimSpace(s) {
 	case "OFF", "0":
 		return false, nil
 	case "ON", "1":

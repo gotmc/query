@@ -24,6 +24,8 @@ func TestBool(t *testing.T) {
 			"cmd2": "OFF",
 			"cmd3": "1",
 			"cmd4": "ON",
+			"cmd5": "0\n",
+			"cmd6": "1\n",
 		},
 	}
 	testCases := []struct {
@@ -35,6 +37,8 @@ func TestBool(t *testing.T) {
 		{"cmd2", false, nil},
 		{"cmd3", true, nil},
 		{"cmd4", true, nil},
+		{"cmd5", false, nil},
+		{"cmd6", true, nil},
 	}
 	for _, testCase := range testCases {
 		got, err := Bool(q, testCase.cmd)

@@ -1,3 +1,3 @@
 module github.com/gotmc/query
 
-go 1.18
+go 1.21

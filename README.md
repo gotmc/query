@@ -8,7 +8,7 @@ Go package to parse the results from a query.
 
 ## Overview
 
-Package[query][] provides convenience functions for parsing the results from a
+Package [query][] provides convenience functions for parsing the results from a
 Query.
 
 ```go

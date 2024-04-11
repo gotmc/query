@@ -36,7 +36,7 @@ func Bool(q Querier, cmd string) (bool, error) {
 
 // Boolf queries the Querier according to a format specifier and returns a
 // bool.
-func Boolf(q Querier, format string, a ...interface{}) (bool, error) {
+func Boolf(q Querier, format string, a ...any) (bool, error) {
 	return Bool(q, fmt.Sprintf(format, a...))
 }
 
@@ -51,7 +51,7 @@ func Float64(q Querier, cmd string) (float64, error) {
 
 // Float64f queries the querier according to a format specifier and returns a
 // float.
-func Float64f(q Querier, format string, a ...interface{}) (float64, error) {
+func Float64f(q Querier, format string, a ...any) (float64, error) {
 	return Float64(q, fmt.Sprintf(format, a...))
 }
 
@@ -76,7 +76,7 @@ func Int(q Querier, cmd string) (int, error) {
 
 // Intf queries the querier according to a format specifier and returns a
 // int.
-func Intf(q Querier, format string, a ...interface{}) (int, error) {
+func Intf(q Querier, format string, a ...any) (int, error) {
 	return Int(q, fmt.Sprintf(format, a...))
 }
 
@@ -87,6 +87,6 @@ func String(q Querier, cmd string) (string, error) {
 
 // Stringf queries the querier according to a format specifier and returns a
 // string.
-func Stringf(q Querier, format string, a ...interface{}) (string, error) {
+func Stringf(q Querier, format string, a ...any) (string, error) {
 	return String(q, fmt.Sprintf(format, a...))
 }

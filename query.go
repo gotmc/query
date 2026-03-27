@@ -84,9 +84,14 @@ func Intf(ctx context.Context, q Querier, format string, a ...any) (int, error) 
 	return Int(ctx, q, fmt.Sprintf(format, a...))
 }
 
-// String queries the querier with the given command and returns a string.
+// String queries the querier with the given command and returns a string
+// trimming any whitespace.
 func String(ctx context.Context, q Querier, cmd string) (string, error) {
-	return q.Query(ctx, cmd)
+	s, err := q.Query(ctx, cmd)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(s), nil
 }
 
 // Stringf queries the querier according to a format specifier and returns a

@@ -28,10 +28,10 @@ func Bool(ctx context.Context, q Querier, cmd string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	switch strings.TrimSpace(s) {
-	case "OFF", "0":
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "OFF", "0", "FALSE":
 		return false, nil
-	case "ON", "1":
+	case "ON", "1", "TRUE":
 		return true, nil
 	default:
 		return false, fmt.Errorf("could not determine boolean status from %s", s)

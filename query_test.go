@@ -28,12 +28,22 @@ func (q errQuerier) Query(_ context.Context, cmd string) (string, error) {
 func TestBool(t *testing.T) {
 	q := query{
 		data: map[string]string{
-			"cmd1": "0",
-			"cmd2": "OFF",
-			"cmd3": "1",
-			"cmd4": "ON",
-			"cmd5": "0\n",
-			"cmd6": "1\n",
+			"cmd1":  "0",
+			"cmd2":  "OFF",
+			"cmd3":  "1",
+			"cmd4":  "ON",
+			"cmd5":  "0\n",
+			"cmd6":  "1\n",
+			"cmd7":  "off",
+			"cmd8":  "on",
+			"cmd9":  "Off",
+			"cmd10": "On",
+			"cmd11": "FALSE",
+			"cmd12": "TRUE",
+			"cmd13": "false",
+			"cmd14": "true",
+			"cmd15": "False",
+			"cmd16": "True",
 		},
 	}
 	testCases := []struct {
@@ -48,6 +58,16 @@ func TestBool(t *testing.T) {
 		{"ON", "cmd4", true, false},
 		{"zero with newline", "cmd5", false, false},
 		{"one with newline", "cmd6", true, false},
+		{"off lowercase", "cmd7", false, false},
+		{"on lowercase", "cmd8", true, false},
+		{"Off mixed case", "cmd9", false, false},
+		{"On mixed case", "cmd10", true, false},
+		{"FALSE", "cmd11", false, false},
+		{"TRUE", "cmd12", true, false},
+		{"false lowercase", "cmd13", false, false},
+		{"true lowercase", "cmd14", true, false},
+		{"False mixed case", "cmd15", false, false},
+		{"True mixed case", "cmd16", true, false},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

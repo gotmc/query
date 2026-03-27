@@ -9,10 +9,13 @@ Single-package Go library (`github.com/gotmc/query`) providing typed convenience
 ## Commands
 
 ```bash
-# Format, vet, and test
+# Format and vet
 just check
 
-# Lint (requires staticcheck)
+# Run unit tests (depends on check)
+just unit
+
+# Lint (requires golangci-lint, config in .golangci.yaml)
 just lint
 
 # Test coverage HTML report
@@ -21,8 +24,6 @@ just cover
 # Run a single test
 go test -run TestBool ./...
 ```
-
-Both `Makefile` and `Justfile` exist; the Justfile is more current (uses `GOEXPERIMENT=loopvar`).
 
 ## Architecture
 

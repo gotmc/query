@@ -11,6 +11,7 @@ package query
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -22,11 +23,22 @@ type Querier interface {
 	Query(ctx context.Context, cmd string) (string, error)
 }
 
+// TruncationError is returned by Int when a float value is truncated to an
+// integer. The truncated value is still returned alongside this error.
+type TruncationError struct {
+	Value    int
+	Original string
+}
+
+func (e *TruncationError) Error() string {
+	return fmt.Sprintf("value %s truncated to %d", e.Original, e.Value)
+}
+
 // Bool queries a Querier with the given command and returns a bool.
 func Bool(ctx context.Context, q Querier, cmd string) (bool, error) {
 	s, err := q.Query(ctx, cmd)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("querying bool %q: %w", cmd, err)
 	}
 	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "OFF", "0", "FALSE":
@@ -34,7 +46,7 @@ func Bool(ctx context.Context, q Querier, cmd string) (bool, error) {
 	case "ON", "1", "TRUE":
 		return true, nil
 	default:
-		return false, fmt.Errorf("could not determine boolean status from %s", s)
+		return false, fmt.Errorf("could not determine boolean status from %q", s)
 	}
 }
 
@@ -48,9 +60,13 @@ func Boolf(ctx context.Context, q Querier, format string, a ...any) (bool, error
 func Float64(ctx context.Context, q Querier, cmd string) (float64, error) {
 	s, err := q.Query(ctx, cmd)
 	if err != nil {
-		return 0.0, err
+		return 0, fmt.Errorf("querying float64 %q: %w", cmd, err)
 	}
-	return strconv.ParseFloat(strings.TrimSpace(s), 64)
+	f, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
+	if err != nil {
+		return 0, fmt.Errorf("parsing float64 for %q: %w", cmd, err)
+	}
+	return f, nil
 }
 
 // Float64f queries the querier according to a format specifier and returns a
@@ -63,15 +79,21 @@ func Float64f(ctx context.Context, q Querier, format string, a ...any) (float64,
 func Int(ctx context.Context, q Querier, cmd string) (int, error) {
 	s, err := q.Query(ctx, cmd)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("querying int %q: %w", cmd, err)
 	}
 	s = strings.TrimSpace(s)
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		// The string might be formatted to in scientific format.
+		// The string might be in scientific notation (e.g., "+1.23E+02").
 		f, err := strconv.ParseFloat(s, 64)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("parsing int for %q: %w", cmd, err)
+		}
+		if f > float64(math.MaxInt) || f < float64(math.MinInt) {
+			return 0, fmt.Errorf("value %s overflows int for %q", s, cmd)
+		}
+		if f != math.Trunc(f) {
+			return int(f), &TruncationError{Value: int(f), Original: s}
 		}
 		return int(f), nil
 	}
@@ -89,7 +111,7 @@ func Intf(ctx context.Context, q Querier, format string, a ...any) (int, error) 
 func String(ctx context.Context, q Querier, cmd string) (string, error) {
 	s, err := q.Query(ctx, cmd)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("querying string %q: %w", cmd, err)
 	}
 	return strings.TrimSpace(s), nil
 }

@@ -184,6 +184,40 @@ func TestInt_invalidValue(t *testing.T) {
 	}
 }
 
+func TestInt_truncated(t *testing.T) {
+	q := query{
+		data: map[string]string{
+			"cmd1": "1.9",
+			"cmd2": "3.14",
+			"cmd3": "-2.7",
+		},
+	}
+	testCases := []struct {
+		name     string
+		cmd      string
+		expected int
+	}{
+		{"1.9 truncates to 1", "cmd1", 1},
+		{"3.14 truncates to 3", "cmd2", 3},
+		{"-2.7 truncates to -2", "cmd3", -2},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Int(context.Background(), q, tc.cmd)
+			var truncErr *TruncationError
+			if !errors.As(err, &truncErr) {
+				t.Fatalf("Int() expected TruncationError, got %v", err)
+			}
+			if got != tc.expected {
+				t.Errorf("Int() = %d, want %d", got, tc.expected)
+			}
+			if truncErr.Value != tc.expected {
+				t.Errorf("TruncationError.Value = %d, want %d", truncErr.Value, tc.expected)
+			}
+		})
+	}
+}
+
 func TestInt_queryError(t *testing.T) {
 	_, err := Int(context.Background(), errQuerier{}, "cmd")
 	if err == nil {

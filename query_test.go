@@ -7,6 +7,7 @@ package query
 
 import (
 	"context"
+	"errors"
 	"testing"
 )
 
@@ -16,6 +17,12 @@ type query struct {
 
 func (q query) Query(_ context.Context, cmd string) (string, error) {
 	return q.data[cmd], nil
+}
+
+type errQuerier struct{}
+
+func (q errQuerier) Query(_ context.Context, cmd string) (string, error) {
+	return "", errors.New("query failed")
 }
 
 func TestBool(t *testing.T) {
@@ -30,25 +37,54 @@ func TestBool(t *testing.T) {
 		},
 	}
 	testCases := []struct {
-		cmd         string
-		expected    bool
-		expectedErr error
+		name     string
+		cmd      string
+		expected bool
+		wantErr  bool
 	}{
-		{"cmd1", false, nil},
-		{"cmd2", false, nil},
-		{"cmd3", true, nil},
-		{"cmd4", true, nil},
-		{"cmd5", false, nil},
-		{"cmd6", true, nil},
+		{"zero", "cmd1", false, false},
+		{"OFF", "cmd2", false, false},
+		{"one", "cmd3", true, false},
+		{"ON", "cmd4", true, false},
+		{"zero with newline", "cmd5", false, false},
+		{"one with newline", "cmd6", true, false},
 	}
-	for _, testCase := range testCases {
-		got, err := Bool(context.Background(), q, testCase.cmd)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %v / got %v", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Bool(context.Background(), q, tc.cmd)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Bool() error = %v, wantErr %v", err, tc.wantErr)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Bool() = %v, want %v", got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestBool_invalidValue(t *testing.T) {
+	q := query{
+		data: map[string]string{
+			"cmd1": "YES",
+			"cmd2": "2",
+			"cmd3": "maybe",
+		},
+	}
+	for _, cmd := range []string{"cmd1", "cmd2", "cmd3"} {
+		t.Run(cmd, func(t *testing.T) {
+			_, err := Bool(context.Background(), q, cmd)
+			if err == nil {
+				t.Error("Bool() expected error for unrecognized value, got nil")
+			}
+		})
+	}
+}
+
+func TestBool_queryError(t *testing.T) {
+	_, err := Bool(context.Background(), errQuerier{}, "cmd")
+	if err == nil {
+		t.Error("Bool() expected error from querier, got nil")
 	}
 }
 
@@ -62,48 +98,76 @@ func TestBoolf(t *testing.T) {
 		},
 	}
 	testCases := []struct {
-		cmdNum      int
-		expected    bool
-		expectedErr error
+		name     string
+		cmdNum   int
+		expected bool
 	}{
-		{1, false, nil},
-		{2, false, nil},
-		{3, true, nil},
-		{4, true, nil},
+		{"zero", 1, false},
+		{"OFF", 2, false},
+		{"one", 3, true},
+		{"ON", 4, true},
 	}
-	for _, testCase := range testCases {
-		got, err := Boolf(context.Background(), q, "cmd%d", testCase.cmdNum)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %v / got %v", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Boolf(context.Background(), q, "cmd%d", tc.cmdNum)
+			if err != nil {
+				t.Errorf("Boolf() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Boolf() = %v, want %v", got, tc.expected)
+			}
+		})
 	}
 }
+
 func TestInt(t *testing.T) {
 	q := query{
 		data: map[string]string{
-			"one": "+1.2300000000000E+02",
-			"two": "123",
+			"one":   "+1.2300000000000E+02",
+			"two":   "123",
+			"three": "  456\n",
 		},
 	}
 	testCases := []struct {
-		cmd         string
-		expected    int
-		expectedErr error
+		name     string
+		cmd      string
+		expected int
 	}{
-		{"one", 123, nil},
-		{"two", 123, nil},
+		{"scientific notation", "one", 123},
+		{"plain integer", "two", 123},
+		{"whitespace trimmed", "three", 456},
 	}
-	for _, testCase := range testCases {
-		got, err := Int(context.Background(), q, testCase.cmd)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %d / got %d", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Int(context.Background(), q, tc.cmd)
+			if err != nil {
+				t.Errorf("Int() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Int() = %d, want %d", got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestInt_invalidValue(t *testing.T) {
+	q := query{
+		data: map[string]string{
+			"cmd1": "abc",
+		},
+	}
+	_, err := Int(context.Background(), q, "cmd1")
+	if err == nil {
+		t.Error("Int() expected error for non-numeric string, got nil")
+	}
+}
+
+func TestInt_queryError(t *testing.T) {
+	_, err := Int(context.Background(), errQuerier{}, "cmd")
+	if err == nil {
+		t.Error("Int() expected error from querier, got nil")
 	}
 }
 
@@ -115,21 +179,24 @@ func TestIntf(t *testing.T) {
 		},
 	}
 	testCases := []struct {
-		cmdNum      int
-		expected    int
-		expectedErr error
+		name     string
+		cmdNum   int
+		expected int
 	}{
-		{1, 123, nil},
-		{2, 123, nil},
+		{"scientific notation", 1, 123},
+		{"plain integer", 2, 123},
 	}
-	for _, testCase := range testCases {
-		got, err := Intf(context.Background(), q, "cmd%d", testCase.cmdNum)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %d / got %d", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Intf(context.Background(), q, "cmd%d", tc.cmdNum)
+			if err != nil {
+				t.Errorf("Intf() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Intf() = %d, want %d", got, tc.expected)
+			}
+		})
 	}
 }
 
@@ -138,24 +205,36 @@ func TestString(t *testing.T) {
 		data: map[string]string{
 			"get_name": "MyName",
 			"get_sn":   "MySerialNumber",
+			"get_ws":   "  trimmed  \n",
 		},
 	}
 	testCases := []struct {
-		cmd         string
-		expected    string
-		expectedErr error
+		name     string
+		cmd      string
+		expected string
 	}{
-		{"get_name", "MyName", nil},
-		{"get_sn", "MySerialNumber", nil},
+		{"name", "get_name", "MyName"},
+		{"serial number", "get_sn", "MySerialNumber"},
+		{"whitespace trimmed", "get_ws", "trimmed"},
 	}
-	for _, testCase := range testCases {
-		got, err := String(context.Background(), q, testCase.cmd)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %s / got %s", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := String(context.Background(), q, tc.cmd)
+			if err != nil {
+				t.Errorf("String() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("String() = %q, want %q", got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestString_queryError(t *testing.T) {
+	_, err := String(context.Background(), errQuerier{}, "cmd")
+	if err == nil {
+		t.Error("String() expected error from querier, got nil")
 	}
 }
 
@@ -167,21 +246,24 @@ func TestStringf(t *testing.T) {
 		},
 	}
 	testCases := []struct {
-		cmdNum      int
-		expected    string
-		expectedErr error
+		name     string
+		cmdNum   int
+		expected string
 	}{
-		{1, "MyName", nil},
-		{2, "MySerialNumber", nil},
+		{"name", 1, "MyName"},
+		{"serial number", 2, "MySerialNumber"},
 	}
-	for _, testCase := range testCases {
-		got, err := Stringf(context.Background(), q, "cmd%d", testCase.cmdNum)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %s / got %s", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Stringf(context.Background(), q, "cmd%d", tc.cmdNum)
+			if err != nil {
+				t.Errorf("Stringf() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Stringf() = %q, want %q", got, tc.expected)
+			}
+		})
 	}
 }
 
@@ -190,26 +272,51 @@ func TestFloat64(t *testing.T) {
 		data: map[string]string{
 			"cmd1": "1.2345",
 			"cmd2": "3.14159",
+			"cmd3": "  2.718\n",
 		},
 	}
 	testCases := []struct {
-		cmd         string
-		expected    float64
-		expectedErr error
+		name     string
+		cmd      string
+		expected float64
 	}{
-		{"cmd1", 1.2345, nil},
-		{"cmd2", 3.14159, nil},
+		{"basic float", "cmd1", 1.2345},
+		{"pi", "cmd2", 3.14159},
+		{"whitespace trimmed", "cmd3", 2.718},
 	}
-	for _, testCase := range testCases {
-		got, err := Float64(context.Background(), q, testCase.cmd)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %v / got %v", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Float64(context.Background(), q, tc.cmd)
+			if err != nil {
+				t.Errorf("Float64() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Float64() = %v, want %v", got, tc.expected)
+			}
+		})
 	}
 }
+
+func TestFloat64_invalidValue(t *testing.T) {
+	q := query{
+		data: map[string]string{
+			"cmd1": "not_a_number",
+		},
+	}
+	_, err := Float64(context.Background(), q, "cmd1")
+	if err == nil {
+		t.Error("Float64() expected error for non-numeric string, got nil")
+	}
+}
+
+func TestFloat64_queryError(t *testing.T) {
+	_, err := Float64(context.Background(), errQuerier{}, "cmd")
+	if err == nil {
+		t.Error("Float64() expected error from querier, got nil")
+	}
+}
+
 func TestFloat64f(t *testing.T) {
 	q := query{
 		data: map[string]string{
@@ -218,20 +325,23 @@ func TestFloat64f(t *testing.T) {
 		},
 	}
 	testCases := []struct {
-		cmdNum      int
-		expected    float64
-		expectedErr error
+		name     string
+		cmdNum   int
+		expected float64
 	}{
-		{1, 1.2345, nil},
-		{2, 3.14159, nil},
+		{"basic float", 1, 1.2345},
+		{"pi", 2, 3.14159},
 	}
-	for _, testCase := range testCases {
-		got, err := Float64f(context.Background(), q, "cmd%d", testCase.cmdNum)
-		if err != testCase.expectedErr {
-			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
-		}
-		if got != testCase.expected {
-			t.Errorf("wanted %v / got %v", testCase.expected, got)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Float64f(context.Background(), q, "cmd%d", tc.cmdNum)
+			if err != nil {
+				t.Errorf("Float64f() unexpected error: %v", err)
+				return
+			}
+			if got != tc.expected {
+				t.Errorf("Float64f() = %v, want %v", got, tc.expected)
+			}
+		})
 	}
 }

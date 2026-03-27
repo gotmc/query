@@ -1,4 +1,4 @@
-// Copyright (c) 2020–2024 The query developers. All rights reserved.
+// Copyright (c) 2020–2026 The query developers. All rights reserved.
 // Project site: https://github.com/gotmc/query
 // Use of this source code is governed by a MIT-style license that
 // can be found in the LICENSE.txt file for the project.
@@ -6,6 +6,7 @@
 package query
 
 import (
+	"context"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ type query struct {
 	data map[string]string
 }
 
-func (q query) Query(cmd string) (string, error) {
+func (q query) Query(_ context.Context, cmd string) (string, error) {
 	return q.data[cmd], nil
 }
 
@@ -41,7 +42,7 @@ func TestBool(t *testing.T) {
 		{"cmd6", true, nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Bool(q, testCase.cmd)
+		got, err := Bool(context.Background(), q, testCase.cmd)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -71,7 +72,7 @@ func TestBoolf(t *testing.T) {
 		{4, true, nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Boolf(q, "cmd%d", testCase.cmdNum)
+		got, err := Boolf(context.Background(), q, "cmd%d", testCase.cmdNum)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -96,7 +97,7 @@ func TestInt(t *testing.T) {
 		{"two", 123, nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Int(q, testCase.cmd)
+		got, err := Int(context.Background(), q, testCase.cmd)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -122,7 +123,7 @@ func TestIntf(t *testing.T) {
 		{2, 123, nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Intf(q, "cmd%d", testCase.cmdNum)
+		got, err := Intf(context.Background(), q, "cmd%d", testCase.cmdNum)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -148,7 +149,7 @@ func TestString(t *testing.T) {
 		{"get_sn", "MySerialNumber", nil},
 	}
 	for _, testCase := range testCases {
-		got, err := String(q, testCase.cmd)
+		got, err := String(context.Background(), q, testCase.cmd)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -174,7 +175,7 @@ func TestStringf(t *testing.T) {
 		{2, "MySerialNumber", nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Stringf(q, "cmd%d", testCase.cmdNum)
+		got, err := Stringf(context.Background(), q, "cmd%d", testCase.cmdNum)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -200,7 +201,7 @@ func TestFloat64(t *testing.T) {
 		{"cmd2", 3.14159, nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Float64(q, testCase.cmd)
+		got, err := Float64(context.Background(), q, testCase.cmd)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}
@@ -225,7 +226,7 @@ func TestFloat64f(t *testing.T) {
 		{2, 3.14159, nil},
 	}
 	for _, testCase := range testCases {
-		got, err := Float64f(q, "cmd%d", testCase.cmdNum)
+		got, err := Float64f(context.Background(), q, "cmd%d", testCase.cmdNum)
 		if err != testCase.expectedErr {
 			t.Errorf("wanted err %s / got err %s", testCase.expectedErr, err)
 		}

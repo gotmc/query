@@ -1,4 +1,4 @@
-// Copyright (c) 2020–2024 The query developers. All rights reserved.
+// Copyright (c) 2020–2026 The query developers. All rights reserved.
 // Project site: https://github.com/gotmc/query
 // Use of this source code is governed by a MIT-style license that
 // can be found in the LICENSE.txt file for the project.
@@ -9,6 +9,7 @@
 package query
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -18,12 +19,12 @@ import (
 // the resultant string. The command string should include the appropriate
 // terminator for the instrument.
 type Querier interface {
-	Query(cmd string) (string, error)
+	Query(ctx context.Context, cmd string) (string, error)
 }
 
 // Bool queries a Querier with the given command and returns a bool.
-func Bool(q Querier, cmd string) (bool, error) {
-	s, err := q.Query(cmd)
+func Bool(ctx context.Context, q Querier, cmd string) (bool, error) {
+	s, err := q.Query(ctx, cmd)
 	if err != nil {
 		return false, err
 	}
@@ -39,13 +40,13 @@ func Bool(q Querier, cmd string) (bool, error) {
 
 // Boolf queries the Querier according to a format specifier and returns a
 // bool.
-func Boolf(q Querier, format string, a ...any) (bool, error) {
-	return Bool(q, fmt.Sprintf(format, a...))
+func Boolf(ctx context.Context, q Querier, format string, a ...any) (bool, error) {
+	return Bool(ctx, q, fmt.Sprintf(format, a...))
 }
 
 // Float64 queries the Querier with the given command and returns a float64.
-func Float64(q Querier, cmd string) (float64, error) {
-	s, err := q.Query(cmd)
+func Float64(ctx context.Context, q Querier, cmd string) (float64, error) {
+	s, err := q.Query(ctx, cmd)
 	if err != nil {
 		return 0.0, err
 	}
@@ -54,13 +55,13 @@ func Float64(q Querier, cmd string) (float64, error) {
 
 // Float64f queries the querier according to a format specifier and returns a
 // float.
-func Float64f(q Querier, format string, a ...any) (float64, error) {
-	return Float64(q, fmt.Sprintf(format, a...))
+func Float64f(ctx context.Context, q Querier, format string, a ...any) (float64, error) {
+	return Float64(ctx, q, fmt.Sprintf(format, a...))
 }
 
 // Int queries the querier with the given command and returns an int.
-func Int(q Querier, cmd string) (int, error) {
-	s, err := q.Query(cmd)
+func Int(ctx context.Context, q Querier, cmd string) (int, error) {
+	s, err := q.Query(ctx, cmd)
 	if err != nil {
 		return 0, err
 	}
@@ -79,17 +80,17 @@ func Int(q Querier, cmd string) (int, error) {
 
 // Intf queries the querier according to a format specifier and returns a
 // int.
-func Intf(q Querier, format string, a ...any) (int, error) {
-	return Int(q, fmt.Sprintf(format, a...))
+func Intf(ctx context.Context, q Querier, format string, a ...any) (int, error) {
+	return Int(ctx, q, fmt.Sprintf(format, a...))
 }
 
 // String queries the querier with the given command and returns a string.
-func String(q Querier, cmd string) (string, error) {
-	return q.Query(cmd)
+func String(ctx context.Context, q Querier, cmd string) (string, error) {
+	return q.Query(ctx, cmd)
 }
 
 // Stringf queries the querier according to a format specifier and returns a
 // string.
-func Stringf(q Querier, format string, a ...any) (string, error) {
-	return String(q, fmt.Sprintf(format, a...))
+func Stringf(ctx context.Context, q Querier, format string, a ...any) (string, error) {
+	return String(ctx, q, fmt.Sprintf(format, a...))
 }

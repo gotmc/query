@@ -13,7 +13,7 @@ Query.
 
 ```go
 type Querier interface {
-	Query(cmd string) (string, error)
+	Query(ctx context.Context, cmd string) (string, error)
 }
 ```
 

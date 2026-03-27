@@ -26,19 +26,23 @@ Contributions are welcome! To contribute please:
 3. Code
 4. Submit a [pull request][]
 
+### Development Dependencies
+
+- [just][] - task runner that replaces [GNU Make][make]
+
 ### Testing
 
 Prior to submitting a [pull request][], please run:
 
 ```bash
-$ make check
-$ make lint
+$ just check
+$ just lint
 ```
 
 To update and view the test coverage report:
 
 ```bash
-$ make cover
+$ just cover
 ```
 
 ## License
@@ -48,9 +52,11 @@ file for more information.
 
 [godoc badge]: https://godoc.org/github.com/gotmc/query?status.svg
 [godoc link]: https://godoc.org/github.com/gotmc/query
-[query]: https://github.com/gotmc/query
+[just]: https://just.systems/
 [LICENSE.txt]: https://github.com/gotmc/query/blob/master/LICENSE.txt
 [license badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[make]: https://www.gnu.org/software/make/manual/make.html
 [pull request]: https://help.github.com/articles/using-pull-requests
+[query]: https://github.com/gotmc/query
 [report badge]: https://goreportcard.com/badge/github.com/gotmc/query
 [report card]: https://goreportcard.com/report/github.com/gotmc/query

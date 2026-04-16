@@ -12,7 +12,12 @@ coverage_file := "coverage.out"
 loc:
   scc --remap-unknown "-*- Justfile -*-":"justfile"
 
-# Format and vet Go code. Runs before tests.
+# View documentation in web browser using pkgsite.
+[group('general')]
+docs:
+  pkgsite -open .
+
+# Fix, format, and vet Go code. Runs before tests.
 [group('test')]
 check:
 	go fix ./...
